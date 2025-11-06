@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>To-Do App</title>
+  <style>
+    body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:28px;max-width:760px}
+    h1{font-size:28px}
+    form{display:flex;gap:8px;margin-bottom:12px}
+    input[type=text]{flex:1;padding:8px;font-size:16px}
+    button{padding:8px 12px;font-size:15px}
+    ul{list-style:none;padding:0}
+    li{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #eee}
+    .done{opacity:0.6;text-decoration:line-through}
+    .meta{color:#666;font-size:12px}
+  </style>
+</head>
+<body>
+  <h1>To-Do App Automated Demo</h1>
+  <p class="meta">Full DevOps: Terraform + Ansible + Docker + GitHub Actions + Azure App Service</p>
+
+  <form id="addForm">
+    <input id="text" type="text" placeholder="Add a new task" required />
+    <button>Add</button>
+  </form>
+
+  <ul id="list"></ul>
+
+  <script>
+    async function load(){
+      const res = await fetch('/api/todos');
+      const todos = await res.json();
+      const list = document.getElementById('list');
+      list.innerHTML = '';
+      if(todos.length===0){ list.innerHTML = '<li><em>No tasks yet</em></li>'; return; }
+      todos.forEach(t=>{
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <input type="checkbox"${t.done?' checked':''} onclick="toggle(${t.id})">
+          <span class="${t.done?'done':''}">${escapeHtml(t.text)}</span>
+          <button style="margin-left:auto" onclick="del(${t.id})">Delete</button>
+        `;
+        list.appendChild(li);
+      });
+    }
+    function escapeHtml(s){ return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+    async function add(e){
+      e.preventDefault();
+      const t = document.getElementById('text').value.trim();
+      if(!t) return;
+      await fetch('/api/todos', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ text: t }) });
+      document.getElementById('text').value='';
+      load();
+    }
+    async function toggle(id){
+      await fetch('/api/todos/'+id+'/toggle', { method:'POST' });
+      load();
+    }
+    async function del(id){
+      await fetch('/api/todos/'+id, { method:'DELETE' });
+      load();
+    }
+    document.getElementById('addForm').addEventListener('submit', add);
+    load();
+  </script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+---
+- name: Post-deploy verification (local)
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Show project info
+      debug:
+        msg: "Verifying deployment of todo-app-karnishwar1725"
+    - name: Check Node installed locally
+      command: node -v
+      register: nodever
+      ignore_errors: true
+    - debug:
+        var: nodever.stdout
+    - name: Verify site responds (200)
+      uri:
+        url: https://todo-app-karnishwar1725.azurewebsites.net/
+        method: GET
+        return_content: no
+        status_code: 200
+        validate_certs: no
+      register: sitecheck
+      retries: 10
+      delay: 6
+      until: sitecheck.status == 200
+    - debug:
+        msg: "Site reachable with status { sitecheck.status }"
