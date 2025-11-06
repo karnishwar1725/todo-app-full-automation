@@ -1,4 +1,4 @@
-# Ansible (Optional)
+# Ansible 
 
 This playbook runs **locally** to verify your deployment of `todo-app-karnishwar1725`:
 - Prints project info
