@@ -1,15 +1,15 @@
 {
-  "name": "todo-app-azure-full-automation",
-  "version": "1.0.0",
-  "description": "To-Do app with Terraform + Ansible + Docker + GitHub Actions + Azure App Service",
+  "name": "todo-app-auto-deploy",
+  "version": "1.0.1",
+  "description": "Simple To-Do app deployed using Azure with automation tools",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
+    "express": "^4.21.2",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
-    "express": "^4.21.2",
     "nodemailer": "^7.0.10"
   }
 }

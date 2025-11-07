@@ -1,6 +1,6 @@
 const express = require("express");
-const bodyParser = require("body-parser");
 const cors = require("cors");
+const bodyParser = require("body-parser");
 const nodemailer = require("nodemailer");
 
 const app = express();
@@ -28,20 +28,31 @@ app.get("/api/todos", (req, res) => {
 });
 
 app.post("/api/todos", (req, res) => {
+  const { text } = req.body;
+  if (!text || !text.trim()) {
+    return res.status(400).json({ error: "Task text is required" });
+  }
+
   const newTodo = {
-    id: todos.length + 1,
-    text: req.body.text,
+    id: todos.length ? todos[todos.length - 1].id + 1 : 1,
+    text: text.trim(),
     done: false
   };
+
   todos.push(newTodo);
-  res.json(newTodo);
+  res.status(201).json(newTodo);
 });
 
 app.post("/api/todos/:id/toggle", (req, res) => {
   const id = Number(req.params.id);
-  const todo = todos.find(t => t.id === id);
-  if (!todo) return res.status(404).json({ error: "Task not found" });
+  const todo = todos.find(item => item.id === id);
+
+  if (!todo) {
+    return res.status(404).json({ error: "Task not found" });
+  }
+
   todo.done = !todo.done;
+
   if (todo.done) {
     const mailOptions = {
       from: "noreply@yourapp.com",
@@ -49,21 +60,32 @@ app.post("/api/todos/:id/toggle", (req, res) => {
       subject: "✅ Task Completed",
       text: `The task "${todo.text}" has been marked as completed!`
     };
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) console.error("Error sending email:", error);
-      else console.log("Email sent:", info.response);
+
+    transporter.sendMail(mailOptions, (err, info) => {
+      if (err) {
+        console.error("Email failed:", err.message);
+      } else {
+        console.log("Email sent:", info.response);
+      }
     });
   }
+
   res.json(todo);
 });
 
 app.delete("/api/todos/:id", (req, res) => {
   const id = Number(req.params.id);
-  todos = todos.filter(t => t.id !== id);
+  const before = todos.length;
+  todos = todos.filter(item => item.id !== id);
+
+  if (todos.length === before) {
+    return res.status(404).json({ error: "Task not found" });
+  }
+
   res.json({ success: true });
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`To-Do app running on http://localhost:${PORT}`);
+  console.log(`Server running at http://localhost:${PORT}`);
 });
